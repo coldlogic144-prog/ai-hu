@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Excel Dashboard</title>
+<meta name="description" content="A premium, static Excel data dashboard powered by SheetJS." />
+
+<!-- Font Awesome (icons) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
+
+<!-- Google Fonts (default UI font) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===================== APP SHELL ===================== -->
+<div class="app">
+
+  <!-- ---------- HEADER ---------- -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand">
+        <span class="brand-icon"><i class="fa-solid fa-table-cells"></i></span>
+        <div class="brand-text">
+          <h1>Excel Dashboard</h1>
+          <span class="brand-sub">Live workbook viewer</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="globalSearch" class="search-input" placeholder="Search all columns..." autocomplete="off" />
+        <button id="clearSearch" class="clear-search-btn" title="Clear search" aria-label="Clear search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="select-wrap" title="Select worksheet">
+        <i class="fa-solid fa-layer-group select-icon"></i>
+        <select id="sheetSelector" class="sheet-selector" aria-label="Worksheet selector"></select>
+      </div>
+
+      <div class="select-wrap" title="Font style">
+        <i class="fa-solid fa-font select-icon"></i>
+        <select id="fontSelector" class="sheet-selector" aria-label="Font selector">
+          <option value="default">Default Font</option>
+          <option value="krutidev">Kruti Dev</option>
+        </select>
+      </div>
+
+      <button id="themeToggle" class="icon-btn" title="Toggle theme" aria-label="Toggle dark/light theme">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+
+      <div class="export-dropdown">
+        <button id="exportBtn" class="icon-btn" title="Export" aria-label="Export options">
+          <i class="fa-solid fa-file-export"></i>
+        </button>
+        <div id="exportMenu" class="export-menu hidden">
+          <button data-export="csv"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+          <button data-export="xlsx"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+          <button data-export="print"><i class="fa-solid fa-print"></i> Print View</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ---------- STAT CARDS ---------- -->
+  <section class="stats-bar" id="statsBar">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--blue"><i class="fa-solid fa-list-ol"></i></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statTotalRows">0</span>
+        <span class="stat-label">Total Rows</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--purple"><i class="fa-solid fa-table-columns"></i></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statTotalCols">0</span>
+        <span class="stat-label">Total Columns</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--green"><i class="fa-solid fa-layer-group"></i></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statSheetName">–</span>
+        <span class="stat-label">Current Worksheet</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--orange"><i class="fa-solid fa-filter"></i></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statFilteredRows">0</span>
+        <span class="stat-label">Filtered Rows</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--pink"><i class="fa-solid fa-clock-rotate-left"></i></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statLastLoaded">–</span>
+        <span class="stat-label">Last Loaded</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- MAIN CARD ---------- -->
+  <main class="main-card">
+
+    <!-- Toolbar -->
+    <div class="table-toolbar">
+      <div class="toolbar-left">
+        <button id="filterToggleBtn" class="toolbar-btn">
+          <i class="fa-solid fa-sliders"></i> Column Filters
+        </button>
+        <button id="resetFiltersBtn" class="toolbar-btn toolbar-btn--ghost">
+          <i class="fa-solid fa-rotate-left"></i> Reset
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <label class="rows-per-page-label" for="rowsPerPage">Rows per page</label>
+        <select id="rowsPerPage" class="rows-per-page-select">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- States -->
+    <div id="loadingState" class="state-panel">
+      <div class="spinner"></div>
+      <p>Loading workbook data...</p>
+    </div>
+
+    <div id="errorState" class="state-panel hidden">
+      <div class="state-icon state-icon--error"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <h3>Couldn't load data.xlsx</h3>
+      <p id="errorMessage">Please make sure the file exists in the project root.</p>
+    </div>
+
+    <div id="emptyState" class="state-panel hidden">
+      <div class="state-icon state-icon--empty"><i class="fa-solid fa-inbox"></i></div>
+      <h3>No data found</h3>
+      <p>This worksheet appears to be empty, or no rows match your filters.</p>
+    </div>
+
+    <!-- Table -->
+    <div id="tableWrapper" class="table-wrapper hidden">
+      <table id="dataTable" class="data-table">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div id="paginationBar" class="pagination-bar hidden">
+      <span class="pagination-info" id="paginationInfo"></span>
+      <div class="pagination-controls">
+        <button id="firstPageBtn" class="page-btn" title="First page"><i class="fa-solid fa-angles-left"></i></button>
+        <button id="prevPageBtn" class="page-btn" title="Previous page"><i class="fa-solid fa-angle-left"></i></button>
+        <span class="page-indicator" id="pageIndicator">Page 1 of 1</span>
+        <button id="nextPageBtn" class="page-btn" title="Next page"><i class="fa-solid fa-angle-right"></i></button>
+        <button id="lastPageBtn" class="page-btn" title="Last page"><i class="fa-solid fa-angles-right"></i></button>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>Excel Dashboard &middot; Built with SheetJS &middot; <span id="footerYear"></span></p>
+  </footer>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
